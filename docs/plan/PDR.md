@@ -2,7 +2,7 @@
 
 **Project Name:** clawdy-mngr  
 **Type:** Full-stack Web Application  
-**Version:** 1.0.0  
+**Version:** 1.0.1  
 **Status:** Draft  
 **Date:** 2026-03-14
 
@@ -140,19 +140,18 @@ Planning mid and large projects requires structure, but existing tools lack AI i
 #### Task Card
 
 - Title (truncated if long)
-- Priority indicator (colored left border)
 - Tags (optional)
 - Drag handle
 - Click to expand/edit
 
+**Note:** Priority is shown by position in column - top cards are higher priority
+
 #### Task Modal
 
 - Title input
-- Description (markdown supported)
-- Priority selector (Low/Medium/High/Critical)
+- Description (WYSIWYG Markdown editor)
 - Tags input
 - Due date (optional)
-- AI task toggle
 - Save/Cancel buttons
 
 ---
@@ -180,11 +179,9 @@ CREATE TABLE tasks (
   title TEXT NOT NULL,
   description TEXT,
   status TEXT DEFAULT 'backlog', -- backlog, todo, in_progress, done
-  priority TEXT DEFAULT 'medium', -- low, medium, high, critical
-  position INTEGER DEFAULT 0,
+  position INTEGER DEFAULT 0, -- order within column (lower = higher priority)
   tags TEXT, -- JSON array
   due_date DATETIME,
-  is_ai_task INTEGER DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   completed_at DATETIME,
@@ -197,6 +194,11 @@ CREATE TABLE settings (
   value TEXT
 );
 ```
+
+**Notes:**
+- Priority is determined by `position` field - lower number = higher priority (appears at top)
+- All tasks in "Todo" column are eligible for AI completion
+- No separate AI flag needed - AI processes all Todo tasks
 
 ---
 
@@ -284,25 +286,25 @@ CREATE TABLE settings (
 
 **Task Properties:**
 - Title (string, required)
-- Description (markdown)
-- Priority (low/medium/high/critical)
+- Description (WYSIWYG Markdown)
 - Tags (array of strings)
 - Due date (optional)
-- AI task flag (boolean)
+- Position (integer, determines order within column - lower = higher priority)
 
 ### 6.4 AI Subagent Integration
 
 **Automatic Pickup:**
 - Cron job checks "Todo" column every X minutes
-- Tasks with `is_ai_task = true` are eligible
-- Subagent picks up oldest eligible task
+- All tasks in "Todo" are eligible for AI completion
+- Subagent picks task with lowest `position` value (highest priority) at top of column
 
 **Context Provision:**
 - `/api/ai/context/[projectId]` returns:
   - Project name + description
-  - Task details
+  - Task details (all tasks, sorted by position)
   - Recent completed tasks (for context)
   - Any relevant notes/docs from `/docs/plan/`
+- **Context Refresh:** AI agent re-fetches context when it reaches 50% of used context window
 
 **Status Tracking:**
 - Subagent updates task status → In Progress
@@ -313,12 +315,28 @@ CREATE TABLE settings (
 - Button to force subagent run
 - Useful for testing or immediate processing
 
-### 6.5 PWA Features
+**Offline Behavior:**
+- If network unavailable, subagent waits and retries when connection restored
+- Uses Tailscale DNS - accessible via `http://clawdy:3000` or Tailscale IP
+
+### 6.5 Offline Handling
+
+**Offline Page:**
+- When offline, display a beautiful offline page
+- Offline page shows:
+  - App logo
+  - "You're offline" message
+  - Animated illustration (e.g., cloud with rain or disconnected plug)
+  - "We'll reconnect automatically" text
+  - Last sync timestamp (if available)
+- No data editing possible when offline
+- Reconnects automatically when network restored
+
+### 6.6 PWA Features (Optional)
 
 - Manifest.json with app name, icons
-- Service worker for offline caching
-- Install prompt on mobile
-- Works offline (read-only or queue changes)
+- Add to home screen prompt on mobile
+- Note: Full offline support not required - offline page sufficient
 
 ---
 
@@ -333,7 +351,7 @@ services:
   app:
     build: .
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     volumes:
       - ./data:/app/data
     environment:
@@ -341,11 +359,14 @@ services:
     restart: unless-stopped
 ```
 
-### Tailscale Access
-
-- App runs on Raspberry Pi (already on Tailscale)
-- Access via `http://raspberrypi.local:3000` or Tailscale IP
-- No additional config needed
+**Network Access:**
+- App binds to `127.0.0.1:3000` (localhost only)
+- Accessible via:
+  - `http://127.0.0.1:3000` (local)
+  - `http://localhost:3000` (local)
+  - Tailscale Magic DNS: `http://clawdy:3000` (from Tailscale network)
+- No authentication required - local network trust
+- Not exposed to public internet
 
 ### Development
 
@@ -374,6 +395,8 @@ docker run -p 3000:3000 -v $(pwd)/data:/app/data clawdy-mngr
 - [ ] Mobile responsive layout
 - [ ] Docker build succeeds
 - [ ] App runs on Raspberry Pi
+- [ ] **Nice WYSIWYG Markdown editor** for task descriptions
+- [ ] **Slick, modern UI design**
 
 ### Should Have
 
@@ -403,14 +426,15 @@ docker run -p 3000:3000 -v $(pwd)/data:/app/data clawdy-mngr
 
 ---
 
-## 10. Open Questions
+## 10. Open Questions (ANSWERED)
 
-1. **AI Task Assignment:** Should subagent pick randomly or by priority?
-2. **Context Refresh:** How often should subagent re-fetch project context?
-3. **Offline Queue:** How to handle task updates when offline?
-4. **Security:** Should there be authentication for local-only access?
+1. **AI Task Assignment:** By priority from top of Todo column (lowest position value first)
+2. **Context Refresh:** AI agent re-fetches context when it reaches 50% of used context window
+3. **Offline Queue:** Show nice offline page; wait for connection to restore
+4. **Security:** No auth required - runs on local network only, bound to 127.0.0.1:3000, accessible via Tailscale Magic DNS
 
 ---
 
 *PDR Owner: Maciek*  
-*Last Updated: 2026-03-14*
+*Last Updated: 2026-03-14*  
+*Version: 1.0.1 - Added WYSIWYG editor, slick design, removed priority/AI flag, answered open questions*
