@@ -23,6 +23,7 @@ import TaskModal from '@/components/TaskModal';
 import RequirementsModal from '@/components/RequirementsModal';
 import AIStatusIndicator from '@/components/AIStatusIndicator';
 import AITriggerButton from '@/components/AITriggerButton';
+import RevertAIButton from '@/components/RevertAIButton';
 import OfflineIndicator from '@/components/OfflineIndicator';
 import ReactMarkdown from 'react-markdown';
 
@@ -66,9 +67,12 @@ function TaskCard({ task, onClick }: { task: Task; onClick: () => void }) {
         </div>
       )}
       {task.aiModified === 1 && (
-        <span className="inline-block mt-2 text-xs bg-purple-600/20 text-purple-400 px-2 py-0.5 rounded">
-          🤖 AI
-        </span>
+        <div className="flex items-center gap-2 mt-2">
+          <span className="text-xs bg-purple-600/20 text-purple-400 px-2 py-0.5 rounded">
+            🤖 AI
+          </span>
+          <RevertAIButton taskId={task.id} onRevert={() => window.location.reload()} />
+        </div>
       )}
     </div>
   );
