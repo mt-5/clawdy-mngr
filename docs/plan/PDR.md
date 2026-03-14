@@ -2,7 +2,7 @@
 
 **Project Name:** clawdy-mngr  
 **Type:** Full-stack Web Application  
-**Version:** 1.0.2  
+**Version:** 1.0.3  
 **Status:** Draft  
 **Date:** 2026-03-14
 
@@ -141,17 +141,20 @@ Planning mid and large projects requires structure, but existing tools lack AI i
 #### Task Card
 
 - Title (truncated if long)
+- Linked requirement badge 📋 (shows requirement status: pending/fulfilled/failed)
 - AI status badge (corner): 🟢 Idle | 🟡 Working | 🔴 Error
 - AI badge 🤖 (if AI-modified, with revert button)
 - Drag handle
 - Click to expand/edit
 
 **Note:** Priority is shown by position in column - top cards are higher priority
+**Note:** Task cannot be moved to Done unless linked requirement is fulfilled
 
 #### Task Modal
 
 - Title input
 - Description (WYSIWYG Markdown editor)
+- Requirement selector (dropdown - optional)
 - Save/Cancel buttons
 
 ---
@@ -172,6 +175,19 @@ CREATE TABLE projects (
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Requirements table
+CREATE TABLE requirements (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT,
+  status TEXT DEFAULT 'pending', -- pending, fulfilled, failed
+  test_result TEXT, -- AI test results
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+);
+
 -- Tasks table
 CREATE TABLE tasks (
   id TEXT PRIMARY KEY,
@@ -180,12 +196,14 @@ CREATE TABLE tasks (
   description TEXT,
   status TEXT DEFAULT 'backlog', -- backlog, todo, in_progress, done
   position INTEGER DEFAULT 0, -- order within column (lower = higher priority)
+  requirement_id TEXT, -- linked requirement (must be fulfilled to complete task)
   ai_modified INTEGER DEFAULT 0, -- 1 if AI modified this task
   ai_snapshot TEXT, -- JSON snapshot of state before AI modification
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   completed_at DATETIME,
-  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (requirement_id) REFERENCES requirements(id) ON DELETE SET NULL
 );
 
 -- Settings table
@@ -214,6 +232,17 @@ CREATE TABLE settings (
 | PUT | /api/projects/[id] | Update project |
 | DELETE | /api/projects/[id] | Delete project |
 | POST | /api/projects/[id]/archive | Archive project |
+
+### Requirements
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/projects/[id]/requirements | List requirements for project |
+| POST | /api/projects/[id]/requirements | Create requirement |
+| PUT | /api/requirements/[id] | Update requirement |
+| DELETE | /api/requirements/[id] | Delete requirement |
+| POST | /api/requirements/[id]/test | AI tests/validates the requirement |
+| POST | /api/requirements/[id]/fulfill | Mark requirement as fulfilled |
 
 ### Tasks
 
@@ -252,11 +281,36 @@ CREATE TABLE settings (
 
 **Delete Project:**
 - Confirmation dialog
-- Cascades to delete all tasks
+- Cascades to delete all tasks and requirements
 
 **Archive Project:**
 - Soft-delete; moves to archived status
 - Archived projects don't appear in dropdown
+
+### 6.2 Requirements Management
+
+**Create Requirement:**
+- Each project has a list of requirements
+- Requirement fields: title, description
+- Default status: pending
+
+**Link Requirement to Task:**
+- Task modal has requirement dropdown
+- Selecting a requirement links it to the task
+- Task shows which requirement it's tied to
+
+**Requirement Fulfillment Flow:**
+1. AI works on task
+2. When task is moved to "Done", AI must first test the linked requirement
+3. AI runs tests/checks for the requirement
+4. If tests pass → requirement marked as "fulfilled"
+5. If tests fail → requirement marked as "failed", task stays in "In Progress"
+6. Task can only be marked Done if linked requirement is "fulfilled"
+
+**AI Requirement Testing:**
+- POST /api/requirements/[id]/test triggers AI to validate the requirement
+- AI examines code/output and determines pass/fail
+- Test result stored in requirement's test_result field
 
 ### 6.2 Kanban Board
 
@@ -290,6 +344,7 @@ CREATE TABLE settings (
 - Title (string, required)
 - Description (WYSIWYG Markdown)
 - Position (integer, determines order within column - lower = higher priority)
+- Requirement ID (optional) - linked requirement that must be fulfilled to complete task
 - AI Modified (boolean) - tracks if AI made changes
 - AI Snapshot (JSON) - stores state before AI modification for revert
 
@@ -452,4 +507,4 @@ docker run -p 3000:3000 -v $(pwd)/data:/app/data clawdy-mngr
 
 *PDR Owner: Maciek*  
 *Last Updated: 2026-03-14*  
-*Version: 1.0.2 - Added stop subagent and revert AI task features*
+*Version: 1.0.3 - Added requirements system with AI testing*
