@@ -2,7 +2,7 @@
 
 **Project Name:** clawdy-mngr  
 **Type:** Full-stack Web Application  
-**Version:** 1.0.1  
+**Version:** 1.0.2  
 **Status:** Draft  
 **Date:** 2026-03-14
 
@@ -140,6 +140,7 @@ Planning mid and large projects requires structure, but existing tools lack AI i
 #### Task Card
 
 - Title (truncated if long)
+- AI badge 🤖 (if AI-modified, with revert button)
 - Drag handle
 - Click to expand/edit
 
@@ -177,6 +178,8 @@ CREATE TABLE tasks (
   description TEXT,
   status TEXT DEFAULT 'backlog', -- backlog, todo, in_progress, done
   position INTEGER DEFAULT 0, -- order within column (lower = higher priority)
+  ai_modified INTEGER DEFAULT 0, -- 1 if AI modified this task
+  ai_snapshot TEXT, -- JSON snapshot of state before AI modification
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   completed_at DATETIME,
@@ -226,6 +229,8 @@ CREATE TABLE settings (
 |--------|----------|-------------|
 | GET | /api/ai/status | Get AI subagent status |
 | POST | /api/ai/trigger | Manually trigger subagent |
+| POST | /api/ai/stop | Stop/kill running subagent |
+| POST | /api/ai/revert/[taskId] | Revert AI changes for a specific task |
 | GET | /api/ai/context/[projectId] | Get project context for subagent |
 
 ---
@@ -283,6 +288,8 @@ CREATE TABLE settings (
 - Title (string, required)
 - Description (WYSIWYG Markdown)
 - Position (integer, determines order within column - lower = higher priority)
+- AI Modified (boolean) - tracks if AI made changes
+- AI Snapshot (JSON) - stores state before AI modification for revert
 
 ### 6.4 AI Subagent Integration
 
@@ -307,6 +314,17 @@ CREATE TABLE settings (
 **Manual Trigger:**
 - Button to force subagent run
 - Useful for testing or immediate processing
+
+**Stop Subagent:**
+- Button in UI to stop/kill running subagent
+- If subagent is working on a task, it stops immediately
+- Task remains in "In Progress" state for manual review
+
+**Revert AI Task:**
+- Each task tracks if it was modified by AI
+- "Revert" button on task - restores to previous state before AI modification
+- Stores snapshot of task state before AI changes
+- Task moves back to "Todo" column after revert
 
 **Offline Behavior:**
 - If network unavailable, subagent waits and retries when connection restored
@@ -390,6 +408,8 @@ docker run -p 3000:3000 -v $(pwd)/data:/app/data clawdy-mngr
 - [ ] App runs on Raspberry Pi
 - [ ] **Nice WYSIWYG Markdown editor** for task descriptions
 - [ ] **Slick, modern UI design**
+- [ ] **Stop subagent** - ability to kill running AI agent
+- [ ] **Revert AI task** - revert changes made by AI to a specific task
 
 ### Should Have
 
@@ -430,4 +450,4 @@ docker run -p 3000:3000 -v $(pwd)/data:/app/data clawdy-mngr
 
 *PDR Owner: Maciek*  
 *Last Updated: 2026-03-14*  
-*Version: 1.0.1 - Added WYSIWYG editor, slick design, removed priority/AI flag, answered open questions*
+*Version: 1.0.2 - Added stop subagent and revert AI task features*
