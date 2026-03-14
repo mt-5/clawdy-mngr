@@ -20,6 +20,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import ProjectModal from '@/components/ProjectModal';
 import TaskModal from '@/components/TaskModal';
+import RequirementsModal from '@/components/RequirementsModal';
 
 const COLUMNS: { id: TaskStatus; title: string; color: string }[] = [
   { id: 'backlog', title: 'Backlog', color: 'bg-zinc-500' },
@@ -118,6 +119,7 @@ export default function Home() {
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | undefined>();
   const [defaultTaskStatus, setDefaultTaskStatus] = useState<TaskStatus>('backlog');
+  const [showRequirements, setShowRequirements] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(
@@ -296,6 +298,14 @@ export default function Home() {
             </button>
             {currentProject && (
               <button
+                onClick={() => setShowRequirements(true)}
+                className="text-zinc-400 hover:text-white text-sm"
+              >
+                Requirements
+              </button>
+            )}
+            {currentProject && (
+              <button
                 onClick={() => {
                   setEditingProject(currentProject);
                   setShowProjectModal(true);
@@ -366,6 +376,11 @@ export default function Home() {
         onClose={() => setShowTaskModal(false)}
         task={editingTask}
         defaultStatus={defaultTaskStatus}
+      />
+
+      <RequirementsModal
+        isOpen={showRequirements}
+        onClose={() => setShowRequirements(false)}
       />
     </div>
   );
