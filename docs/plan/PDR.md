@@ -127,9 +127,9 @@ Planning mid and large projects requires structure, but existing tools lack AI i
 
 #### Status Emoji Badge
 
-- Corner position (top-right of Kanban area)
-- Shows current AI status: 🟢 Idle | 🟡 Working | 🔴 Error | ⚪ Offline
-- Click to set status manually
+- Corner position of each task card and top-right of Kanban area
+- Shows current AI status for that task: 🟢 Idle | 🟡 Working | 🔴 Error
+- Global AI status also shown in header area
 
 #### Kanban Column
 
@@ -140,6 +140,7 @@ Planning mid and large projects requires structure, but existing tools lack AI i
 #### Task Card
 
 - Title (truncated if long)
+- AI status badge (corner): 🟢 Idle | 🟡 Working | 🔴 Error
 - AI badge 🤖 (if AI-modified, with revert button)
 - Drag handle
 - Click to expand/edit
