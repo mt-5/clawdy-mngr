@@ -36,6 +36,7 @@ Planning mid and large projects requires structure, but existing tools lack AI i
 - **Framework:** Next.js 14+ (App Router)
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS
+- **Component Library:** shadcn/ui (Radix UI + Tailwind)
 - **State Management:** Zustand
 - **Drag & Drop:** @dnd-kit/core
 - **PWA:** next-pwa
