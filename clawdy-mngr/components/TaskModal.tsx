@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Task, useStore } from '@/lib/store';
+import ReactMarkdown from 'react-markdown';
 
 interface Props {
   isOpen: boolean;
@@ -15,6 +16,7 @@ export default function TaskModal({ isOpen, onClose, task, defaultStatus }: Prop
   const [title, setTitle] = useState(task?.title || '');
   const [description, setDescription] = useState(task?.description || '');
   const [isLoading, setIsLoading] = useState(false);
+  const [isPreview, setIsPreview] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -96,13 +98,28 @@ export default function TaskModal({ isOpen, onClose, task, defaultStatus }: Prop
             />
           </div>
           <div className="mb-6">
-            <label className="block text-sm text-zinc-400 mb-1">Description</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 h-32 resize-none"
-              placeholder="Optional description"
-            />
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm text-zinc-400">Description</label>
+              <button
+                type="button"
+                onClick={() => setIsPreview(!isPreview)}
+                className="text-xs text-zinc-500 hover:text-zinc-300"
+              >
+                {isPreview ? 'Edit' : 'Preview'}
+              </button>
+            </div>
+            {isPreview ? (
+              <div className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 min-h-[128px] prose prose-invert prose-sm">
+                <ReactMarkdown>{description || '*No description*'}</ReactMarkdown>
+              </div>
+            ) : (
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 h-32 resize-none"
+                placeholder="Supports Markdown"
+              />
+            )}
           </div>
           <div className="flex gap-3">
             <button

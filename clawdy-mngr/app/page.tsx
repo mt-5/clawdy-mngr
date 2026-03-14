@@ -21,6 +21,7 @@ import { CSS } from '@dnd-kit/utilities';
 import ProjectModal from '@/components/ProjectModal';
 import TaskModal from '@/components/TaskModal';
 import RequirementsModal from '@/components/RequirementsModal';
+import ReactMarkdown from 'react-markdown';
 
 const COLUMNS: { id: TaskStatus; title: string; color: string }[] = [
   { id: 'backlog', title: 'Backlog', color: 'bg-zinc-500' },
@@ -57,9 +58,9 @@ function TaskCard({ task, onClick }: { task: Task; onClick: () => void }) {
     >
       <h3 className="font-medium text-sm">{task.title}</h3>
       {task.description && (
-        <p className="text-zinc-500 text-xs mt-1 line-clamp-2">
-          {task.description}
-        </p>
+        <div className="text-zinc-500 text-xs mt-1 line-clamp-2 prose prose-invert prose-sm">
+          <ReactMarkdown>{task.description}</ReactMarkdown>
+        </div>
       )}
       {task.aiModified === 1 && (
         <span className="inline-block mt-2 text-xs bg-purple-600/20 text-purple-400 px-2 py-0.5 rounded">
