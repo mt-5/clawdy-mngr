@@ -21,6 +21,9 @@ import { CSS } from '@dnd-kit/utilities';
 import ProjectModal from '@/components/ProjectModal';
 import TaskModal from '@/components/TaskModal';
 import RequirementsModal from '@/components/RequirementsModal';
+import AIStatusIndicator from '@/components/AIStatusIndicator';
+import AITriggerButton from '@/components/AITriggerButton';
+import OfflineIndicator from '@/components/OfflineIndicator';
 import ReactMarkdown from 'react-markdown';
 
 const COLUMNS: { id: TaskStatus; title: string; color: string }[] = [
@@ -272,6 +275,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
+      <OfflineIndicator />
       {/* Header */}
       <header className="border-b border-zinc-800 px-6 py-4">
         <div className="flex items-center justify-between">
@@ -320,6 +324,8 @@ export default function Home() {
           <div className="text-sm text-zinc-400">
             {currentProject ? `${tasks.length} tasks` : 'No project selected'}
           </div>
+          <AIStatusIndicator projectId={currentProjectId || undefined} />
+          <AITriggerButton projectId={currentProjectId || undefined} />
         </div>
       </header>
 
