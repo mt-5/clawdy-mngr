@@ -140,7 +140,6 @@ Planning mid and large projects requires structure, but existing tools lack AI i
 #### Task Card
 
 - Title (truncated if long)
-- Tags (optional)
 - Drag handle
 - Click to expand/edit
 
@@ -150,8 +149,6 @@ Planning mid and large projects requires structure, but existing tools lack AI i
 
 - Title input
 - Description (WYSIWYG Markdown editor)
-- Tags input
-- Due date (optional)
 - Save/Cancel buttons
 
 ---
@@ -180,8 +177,6 @@ CREATE TABLE tasks (
   description TEXT,
   status TEXT DEFAULT 'backlog', -- backlog, todo, in_progress, done
   position INTEGER DEFAULT 0, -- order within column (lower = higher priority)
-  tags TEXT, -- JSON array
-  due_date DATETIME,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   completed_at DATETIME,
@@ -287,8 +282,6 @@ CREATE TABLE settings (
 **Task Properties:**
 - Title (string, required)
 - Description (WYSIWYG Markdown)
-- Tags (array of strings)
-- Due date (optional)
 - Position (integer, determines order within column - lower = higher priority)
 
 ### 6.4 AI Subagent Integration
